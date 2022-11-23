@@ -224,6 +224,7 @@ export default function Home() {
       >
         <Box css={{ width: "50%" }}>
           <Button
+            type="button"
             variant="secondary"
             onClick={() => getColorsImage()}
             css={{ bg: `rgb(${color})` }}
@@ -247,6 +248,7 @@ export default function Home() {
         </Box>
         <Box css={{ width: "50%" }}>
           <Button
+            type="button"
             variant="secondary"
             onClick={() => getPalettesImage()}
             css={{

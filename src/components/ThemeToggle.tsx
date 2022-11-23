@@ -20,6 +20,7 @@ export const ThemeToggle = () => {
   return (
     <>
       <Button
+        type="button"
         variant={"tertiary"}
         onClick={() =>
           theme === "dark" ? setTheme("light") : setTheme("dark")
