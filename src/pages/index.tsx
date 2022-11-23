@@ -1,18 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { getColorFromURL, getPaletteFromURL, Palette } from "color-thief-node";
 
-import { Box, Button, darkTheme, Text, TextInput } from "@escola-ex/react";
+import { Box, Button } from "@escola-ex/react";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { TextInput } from "../components/Input";
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [color, setColor] = useState<Palette | null>(null);
   const [palette, setPalette] = useState<Palette[]>([]);
-
-  const [showingFormUrl, setShowingFormUrl] = useState(false);
-  const [showingFormFile, setShowingFormFile] = useState(true);
 
   const getColorsImage = async () => {
     try {
@@ -48,35 +46,51 @@ export default function Home() {
     }
   };
 
-  async function download(url: string) {
-    var urlFinal;
-    var error;
-
-    await fetch(url, {
-      method: "GET",
-    })
-      .then((data) => {
-        return data.blob();
-      })
-      .then((result) => {
-        urlFinal = URL.createObjectURL(result);
-      })
-      .catch((e) => {
-        error = e;
-      });
-
-    return { urlFinal, error };
-  }
-
   useEffect(() => {
+    async function download(url: string) {
+      var urlFinal;
+      var error;
+
+      await fetch(url, {
+        method: "GET",
+      })
+        .then((data) => {
+          return data.blob();
+        })
+        .then((result) => {
+          urlFinal = URL.createObjectURL(result);
+        })
+        .catch((e) => {
+          error = e;
+        });
+
+      return { urlFinal, error };
+    }
+
     try {
       const reader = new FileReader();
       if (file !== null) {
-        if (file.type.startsWith("image/")) {
+        if (file?.type.startsWith("image/")) {
           const getData = async () => {
             reader.readAsDataURL(file);
-            reader.onload = () => {
-              setImageUrl(reader.result?.toString()!);
+            reader.onload = async () => {
+              const imageBase64 = reader.result?.toString();
+              if (imageBase64) {
+                const { error, urlFinal } = await download(imageBase64);
+                console.log(urlFinal);
+
+                if (error) {
+                  throw new Error("Erro ao carregar a imagem!");
+                }
+
+                if (urlFinal) {
+                  setImageUrl(urlFinal);
+                } else {
+                  setImageUrl(imageBase64);
+                }
+              } else {
+                throw new Error("Erro ao carregar a imagem!");
+              }
             };
           };
           getData();
@@ -90,44 +104,6 @@ export default function Home() {
     }
   }, [file]);
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-
-    const form = e.target as HTMLFormElement & {
-      url: HTMLInputElement;
-    };
-    const url = form.url.value;
-
-    try {
-      if (url || url.trim().length > 0) {
-        console.log(`url: ${url}`);
-        var img = document.createElement("img");
-        img.src = url;
-        img.onload = async () => {
-          console.log("img loaded");
-
-          const { urlFinal, error } = await download(url);
-          if (error) {
-            throw error;
-          } else if (urlFinal) {
-            setImageUrl(urlFinal);
-          } else {
-            throw new Error("Houve um erro!");
-          }
-        };
-        img.onerror = () => {
-          setImageUrl("");
-          console.log("img error");
-          throw new Error("Imagem não encontrado!");
-        };
-      } else {
-        throw new Error("Precisa ter uma url!");
-      }
-    } catch (e) {
-      alert(e);
-    }
-  }
-
   return (
     <Box
       css={{
@@ -135,10 +111,14 @@ export default function Home() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
         maxWidth: "500px",
         mx: "auto",
         my: "$16",
+        px: "$4",
+
+        "@sm": {
+          px: "0",
+        },
       }}
     >
       <Box css={{ width: "50%" }}>
@@ -156,61 +136,26 @@ export default function Home() {
           style={{ borderRadius: "8px" }}
           alt="img"
           src={imageUrl !== "" ? imageUrl : "/cover.jpg"}
-          width={100}
+          width={130}
           height={100}
         />
       </Box>
       <Box
-        as="form"
         css={{
-          my: "$3",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: "$2",
+          mt: "$3",
           width: "100%",
+          display: "flex",
+          justifyContent: "center",
         }}
-        onSubmit={handleSubmit}
       >
-        {showingFormFile ? (
+        <Box>
           <TextInput
             type="file"
             name="file"
             id="file"
+            value={file?.name || ""}
             onChange={(e) => setFile(e.target.files![0])}
           />
-        ) : (
-          <>
-            <TextInput
-              type="url"
-              name="url"
-              id="url"
-              placeholder="Digite uma url de imagem"
-            />
-            <Button type="submit" size="sm">
-              Submit
-            </Button>
-          </>
-        )}
-        <Box css={{ maxWidth: "50%", color: "$primary" }}>
-          <Button
-            size="sm"
-            variant="secondary"
-            type="button"
-            onClick={() => {
-              if (showingFormFile) {
-                setShowingFormFile(false);
-                setShowingFormUrl(true);
-              } else if (showingFormUrl) {
-                setShowingFormFile(true);
-                setShowingFormUrl(false);
-              }
-            }}
-          >
-            {showingFormFile
-              ? "Adicionar url"
-              : showingFormUrl && "Adicionar imagem"}
-          </Button>
         </Box>
       </Box>
       <Box
@@ -227,7 +172,7 @@ export default function Home() {
             type="button"
             variant="secondary"
             onClick={() => getColorsImage()}
-            css={{ bg: `rgb(${color})` }}
+            css={{ color: "$primary", bg: `rgb(${color})` }}
           >
             Pegar cor
           </Button>
@@ -252,6 +197,7 @@ export default function Home() {
             variant="secondary"
             onClick={() => getPalettesImage()}
             css={{
+              color: "$primary",
               bg: `linear-gradient(to right, ${palette.map(
                 (colors) => `rgb(${colors[0]}, ${colors[1]}, ${colors[2]})`
               )})`,
