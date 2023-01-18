@@ -120,7 +120,10 @@ export default function Home() {
         title="Home"
         path="/"
         description="Site para pegar cores e paletas de cores de imagens."
-        image={{ src: "/logo.svg", alt: "Logo do Image Colors" }}
+        image={{
+          src: `${process.env.SITE_BASEURL}/logo.svg`,
+          alt: "Logo do Image Colors",
+        }}
       />
       <Box
         css={{
