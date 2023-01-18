@@ -1,16 +1,26 @@
 /* eslint-disable @next/next/no-img-element */
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getColorFromURL, getPaletteFromURL, Palette } from "color-thief-node";
 
-import { Box, Button } from "@escola-ex/react";
+import { colors } from "@ace-ex/tokens";
+import { getContrast, transparentize } from "polished";
+
+import NextImage from "next/image";
+import { Box, Button, Image, FileInput } from "@ace-ex/react";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { TextInput } from "../components/Input";
+import { Meta } from "../components/Meta";
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [color, setColor] = useState<Palette | null>(null);
   const [palette, setPalette] = useState<Palette[]>([]);
+
+  const contrastColor = (color: string) => {
+    if (color !== "rgb(null)") {
+      return getContrast(color, "#FFF") < 3.5 ? "#000" : "#FFF";
+    }
+  };
 
   const getColorsImage = async () => {
     try {
@@ -48,8 +58,8 @@ export default function Home() {
 
   useEffect(() => {
     async function download(url: string) {
-      var urlFinal;
-      var error;
+      let urlFinal;
+      let error;
 
       await fetch(url, {
         method: "GET",
@@ -105,122 +115,153 @@ export default function Home() {
   }, [file]);
 
   return (
-    <Box
-      css={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        maxWidth: "500px",
-        mx: "auto",
-        my: "$16",
-        px: "$4",
-
-        "@sm": {
-          px: "0",
-        },
-      }}
-    >
-      <Box css={{ width: "50%" }}>
-        <ThemeToggle />
-      </Box>
+    <>
+      <Meta
+        title="Home"
+        path="/"
+        description="Site para pegar cores e paletas de cores de imagens."
+      />
       <Box
         css={{
-          maxWidth: "$space$80",
-          maxHeight: "$space$80",
-          mt: "$12",
-        }}
-      >
-        <img
-          id="image"
-          style={{ borderRadius: "8px" }}
-          alt="img"
-          src={imageUrl !== "" ? imageUrl : "/cover.jpg"}
-          width={130}
-          height={100}
-        />
-      </Box>
-      <Box
-        css={{
-          mt: "$3",
-          width: "100%",
           display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
+          maxWidth: "500px",
+          mx: "auto",
+          my: "$16",
+          px: "$4",
+
+          "@sm": {
+            px: "0",
+          },
         }}
       >
-        <Box>
-          <TextInput
-            type="file"
-            name="file"
-            id="file"
-            value={file?.name || ""}
-            onChange={(e) => setFile(e.target.files![0])}
+        <Box css={{ width: "100%", display: "flex", justifyContent: "center" }}>
+          <ThemeToggle />
+        </Box>
+        <Box
+          css={{
+            mt: "$6",
+            position: "relative",
+            size: "$space$64",
+          }}
+        >
+          <Image
+            as={NextImage}
+            css={{
+              maxWidth: "$space$64",
+              maxHeight: "$space$64",
+              size: "100%",
+              br: "$md",
+              shadowXl: transparentize(0.6, colors.black),
+            }}
+            id="image"
+            alt="Imagem"
+            src={imageUrl !== "" ? imageUrl : "/cover.jpg"}
+            fill
+            sizes="256"
+            priority
           />
         </Box>
-      </Box>
-      <Box
-        css={{
-          mt: "$6",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "$6",
-          width: "100%",
-        }}
-      >
-        <Box css={{ width: "50%" }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => getColorsImage()}
-            css={{ color: "$primary", bg: `rgb(${color})` }}
-          >
-            Pegar cor
-          </Button>
-          <Box css={{ mt: "$4" }}>
-            {color && (
-              <Box
-                css={{
-                  p: "$2",
-                  backgroundColor: `rgb(${color})`,
-                  br: "$md",
-                  color: "$gray100",
-                }}
-              >
-                rgb({color[0]}, {color[1]}, {color[2]})
-              </Box>
-            )}
-          </Box>
+        <Box
+          css={{
+            mt: "$6",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <FileInput
+            name="file"
+            id="file"
+            onChange={(e) => setFile(e.target.files![0])}
+            content={file?.name || "Enviar imagem"}
+          />
         </Box>
-        <Box css={{ width: "50%" }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => getPalettesImage()}
+        <Box
+          css={{
+            mt: "$6",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "$6",
+            width: "100%",
+          }}
+        >
+          <Box
             css={{
-              color: "$primary",
-              bg: `linear-gradient(to right, ${palette.map(
-                (colors) => `rgb(${colors[0]}, ${colors[1]}, ${colors[2]})`
-              )})`,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            Pegar paleta de cores
-          </Button>
-          <Box css={{ mt: "$4" }}>
-            {palette.map((colors, i) => (
-              <Box
-                key={i}
-                css={{
-                  p: "$2",
-                  backgroundColor: `rgb(${colors})`,
-                  color: "$gray100",
-                }}
-              >
-                rgb({colors[0]}, {colors[1]}, {colors[2]})
-              </Box>
-            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => getColorsImage()}
+              css={{
+                color: contrastColor(`rgb(${color})`),
+                bg: `rgb(${color})`,
+              }}
+              fullWidth
+            >
+              Pegar cor
+            </Button>
+            <Box css={{ mt: "$4", width: "100%" }}>
+              {color && (
+                <Box
+                  css={{
+                    p: "$2",
+                    backgroundColor: `rgb(${color})`,
+                    br: "$md",
+                    color: contrastColor(`rgb(${color})`),
+                  }}
+                >
+                  rgb({color[0]}, {color[1]}, {color[2]})
+                </Box>
+              )}
+            </Box>
+          </Box>
+          <Box
+            css={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => getPalettesImage()}
+              css={{
+                color: contrastColor(`rgb(${color})`),
+                bg: `linear-gradient(to right, ${palette.map(
+                  (colors) => `rgb(${colors})`,
+                )})`,
+              }}
+              fullWidth
+            >
+              Pegar paleta de cores
+            </Button>
+            <Box css={{ mt: "$4", width: "100%" }}>
+              {palette.map((colors, i) => (
+                <Box
+                  key={i}
+                  css={{
+                    p: "$2",
+                    backgroundColor: `rgb(${colors})`,
+                    color: contrastColor(`rgb(${colors})`),
+                  }}
+                >
+                  rgb({colors[0]}, {colors[1]}, {colors[2]})
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
+    </>
   );
 }

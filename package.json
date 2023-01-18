@@ -1,29 +1,33 @@
 {
-  "name": "my-app",
+  "name": "image-colors",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint --dir . && eslint . && prettier --check .",
+    "lint:fix": "eslint --fix . && prettier --write ."
   },
   "dependencies": {
-    "@escola-ex/react": "^2.0.0",
-    "@types/node": "18.11.9",
-    "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
+    "@ace-ex/react": "^1.0.2",
+    "@ace-ex/tokens": "^1.0.0",
     "color-thief-node": "^1.0.4",
-    "eslint": "8.28.0",
-    "eslint-config-next": "13.0.4",
-    "next": "13.0.4",
+    "next": "13.1.2",
     "next-themes": "^0.2.1",
+    "polished": "^4.2.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^4.6.0",
-    "typescript": "4.9.3"
+    "react-icons": "^4.7.1"
   },
   "devDependencies": {
-    "@types/color-thief-node": "^1.0.1"
+    "@ace-ex/eslint-config": "^1.1.0",
+    "@types/color-thief-node": "^1.0.2",
+    "@types/node": "18.11.18",
+    "@types/react": "18.0.27",
+    "@types/react-dom": "18.0.10",
+    "eslint": "8.32.0",
+    "prettier": "^2.8.3",
+    "typescript": "4.9.4"
   }
 }

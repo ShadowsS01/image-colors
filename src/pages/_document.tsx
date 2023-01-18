@@ -1,6 +1,5 @@
 import NextDocument, { Html, Head, Main, NextScript } from "next/document";
-
-import { getCssText } from "@escola-ex/react";
+import { getCssText } from "@ace-ex/react";
 
 export default class Document extends NextDocument {
   render() {
